@@ -2,6 +2,10 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { CategoryFilter } from './components/CategoryFilter';
 import { NewsFeed } from './components/NewsFeed';
+import { MetricsDashboard } from './components/MetricsDashboard';
+import { StraitMap } from './components/StraitMap';
+import { Timeline } from './components/Timeline';
+import { MarketImpact } from './components/MarketImpact';
 
 function App() {
   return (
@@ -12,6 +16,10 @@ function App() {
         <div className="flex gap-8">
           {/* Main Content */}
           <div className="flex-1 min-w-0">
+            <MetricsDashboard />
+            <StraitMap />
+            <Timeline />
+            <MarketImpact />
             <CategoryFilter />
             <NewsFeed />
           </div>
