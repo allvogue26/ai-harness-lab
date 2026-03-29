@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iran War News Hub - Sprint 4 Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#1e293b',
+              900: '#0f172a',
+              950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .pulse-dot {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
+    .highlight {
+      background-color: rgba(234, 179, 8, 0.3);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    .modal-enter {
+      animation: modalIn 0.2s ease-out;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-globe text-red-500 text-xl"></i>
+          <h1 class="text-xl font-bold">Iran War News Hub</h1>
+          <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs font-medium">Sprint 4</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-6 text-sm">
+          <a href="#" class="text-slate-400 hover:text-slate-100 transition">Live Feed</a>
+          <a href="#" class="text-slate-400 hover:text-slate-100 transition">Timeline</a>
+          <a href="#" class="text-slate-400 hover:text-slate-100 transition">Markets</a>
+          <a href="#" class="text-slate-400 hover:text-slate-100 transition">Map</a>
+        </nav>
+        <button class="md:hidden p-2 text-slate-400">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex gap-8">
+      <!-- Left Column: News Feed -->
+      <div class="flex-1 min-w-0">
+        
+        <!-- Watchlist Manager -->
+        <div class="bg-slate-800 rounded-lg p-5 border border-slate-700 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-bell text-yellow-500"></i>
+              <h3 class="font-semibold text-slate-200">My Watchlist</h3>
+              <span id="watchlist-count" class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-xs">2</span>
+            </div>
+            <button id="add-keyword-btn" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-sm hover:bg-slate-600 transition">
+              <i class="fas fa-plus text-xs"></i>
+              Add
+            </button>
+          </div>
+          
+          <!-- Add Keyword Input (hidden by default) -->
+          <div id="keyword-input-container" class="hidden mb-4">
+            <div class="flex gap-2">
+              <input 
+                type="text" 
+                id="new-keyword" 
+                placeholder="Enter keyword to track..."
+                class="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              >
+              <button id="confirm-add-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 transition">
+                Add
+              </button>
+              <button id="cancel-add-btn" class="p-2 text-slate-500 hover:text-slate-300">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">Press Enter to add, articles matching keywords will be highlighted</p>
+          </div>
+          
+          <!-- Keywords List -->
+          <div id="keywords-list" class="flex flex-wrap gap-2">
+            <!-- Populated by JS -->
+          </div>
+          
+          <div class="mt-4 pt-4 border-t border-slate-700">
+            <p class="text-xs text-slate-500">
+              Articles matching your watchlist keywords will be highlighted with a yellow border.
+            </p>
+          </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="flex flex-wrap gap-2 mb-6" id="category-filters">
+          <button onclick="filterNews('All')" class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-700 text-white" data-category="All">All News</button>
+          <button onclick="filterNews('Military')" class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-slate-400 hover:bg-slate-700" data-category="Military">Military</button>
+          <button onclick="filterNews('Diplomacy')" class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-slate-400 hover:bg-slate-700" data-category="Diplomacy">Diplomacy</button>
+          <button onclick="filterNews('Economic')" class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-slate-400 hover:bg-slate-700" data-category="Economic">Economic</button>
+          <button onclick="filterNews('Humanitarian')" class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-slate-400 hover:bg-slate-700" data-category="Humanitarian">Humanitarian</button>
+        </div>
+
+        <!-- News Feed Header -->
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-slate-200">Latest Updates</h2>
+          <span class="text-sm text-slate-500" id="article-count">10 articles</span>
+        </div>
+
+        <!-- News Feed -->
+        <div id="news-feed" class="space-y-4">
+          <!-- Articles will be inserted here by JS -->
+        </div>
+      </div>
+
+      <!-- Right Column: Sidebar -->
+      <aside class="hidden lg:block w-80 shrink-0">
+        <div class="sticky top-20 space-y-6">
+          
+          <!-- Key Metrics -->
+          <div class="bg-slate-800 rounded-lg p-5 border border-slate-700">
+            <h3 class="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">Key Metrics</h3>
+            
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                  <i class="fas fa-exclamation-triangle text-red-500"></i>
+                  <span class="text-sm">Days in Conflict</span>
+                </div>
+                <span class="text-xl font-bold text-white">27</span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                  <i class="fas fa-chart-line text-green-500"></i>
+                  <span class="text-sm">Oil Price Change</span>
+                </div>
+                <span class="text-xl font-bold text-green-400">+18%</span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                  <i class="fas fa-users text-orange-500"></i>
+                  <span class="text-sm">Ships Stranded</span>
+                </div>
+                <span class="text-xl font-bold text-white">2,000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strait Status -->
+          <div class="bg-slate-800 rounded-lg p-5 border border-slate-700">
+            <h3 class="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">Strait Status</h3>
+            
+            <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <div class="flex items-center gap-2 text-red-400 mb-1">
+                <span class="relative flex h-2 w-2">
+                  <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 pulse-dot"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <span class="text-xs font-medium uppercase">Effectively Closed</span>
+              </div>
+              <p class="text-xs text-slate-400">Only 9 ships passed through in the last 24h with Iranian coordination.</p>
+            </div>
+          </div>
+
+          <!-- Watchlist Preview -->
+          <div class="bg-slate-800 rounded-lg p-5 border border-slate-700">
+            <h3 class="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider flex items-center gap-2">
+              <i class="fas fa-bell text-yellow-500"></i>
+              Watchlist Preview
+            </h3>
+            <div id="sidebar-keywords" class="flex flex-wrap gap-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Sprint Info -->
+          <div class="bg-slate-800 rounded-lg p-5 border border-slate-700">
+            <h3 class="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">Sprint 4 Status</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-slate-400">AI Summary:</span>
+                <span class="text-green-400 font-medium">✅ F11</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Watchlist:</span>
+                <span class="text-green-400 font-medium">✅ F12</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Persistence:</span>
+                <span class="text-green-400 font-medium">✅ localStorage</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Features:</span>
+                <span class="text-white">8/12</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- AI Summary Modal -->
+  <div id="summary-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden">
+    <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-800 rounded-xl border border-slate-700 shadow-2xl overflow-hidden modal-enter">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b border-slate-700 bg-gradient-to-r from-purple-900/30 to-transparent">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-sparkles text-purple-400"></i>
+          <h3 class="font-semibold text-white">AI Summary</h3>
+        </div>
+        <button onclick="closeSummaryModal()" class="p-1 text-slate-400 hover:text-white transition">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <!-- Content -->
+      <div class="p-4">
+        <div id="summary-loading" class="flex flex-col items-center justify-center py-8">
+          <i class="fas fa-circle-notch fa-spin w-8 h-8 text-purple-400 text-2xl mb-3"></i>
+          <p class="text-slate-400 text-sm">Analyzing article...</p>
+        </div>
+        
+        <div id="summary-content" class="hidden">
+          <!-- Summary Bullets -->
+          <div id="summary-bullets" class="space-y-3 mb-4">
+            <!-- Populated by JS -->
+          </div>
+          
+          <!-- Entities -->
+          <div class="pt-4 border-t border-slate-700">
+            <p class="text-xs text-slate-500 mb-2">Key Entities Detected:</p>
+            <div id="summary-entities" class="flex flex-wrap gap-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mock data
+    const articles = [
+      {
+        id: '1',
+        title: "Iran's Revolutionary Guard Navy Commander Killed in Israeli Strike",
+        summary: "The commander of Iran's Islamic Revolutionary Guard Corps navy, a key figure behind the near-total blockade of the Strait of Hormuz, has been killed according to Israel's defense minister.",
+        source: 'CNN',
+        category: 'Military',
+        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        color: 'bg-red-600'
+      },
+      {
+        id: '2',
+        title: "US Extends Pause on Iran Energy Strikes as 'Talks Are Ongoing'",
+        summary: "President Donald Trump said the US will hold off on targeting Iranian energy sites another 10 days. The pause had been set to expire Friday.",
+        source: 'Reuters',
+        category: 'Diplomacy',
+        publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+        color: 'bg-blue-600'
+      },
+      {
+        id: '3',
+        title: "Oil Prices Surge 5% as Strait of Hormuz Remains Blocked",
+        summary: "Global oil markets face continued chaos as the Strait of Hormuz enters its fourth week of effective closure. Brent crude briefly touched $95 per barrel.",
+        source: 'BBC',
+        category: 'Economic',
+        publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+        color: 'bg-green-600'
+      },
+      {
+        id: '4',
+        title: "Philippines Declares 'National Energy Emergency' as Supply Dwindles",
+        summary: "The Philippines has become the first country to declare a national energy emergency, with the foreign secretary stating they only have 40-45 days of petroleum supply remaining.",
+        source: 'Al Jazeera',
+        category: 'Humanitarian',
+        publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
+        color: 'bg-orange-600'
+      },
+      {
+        id: '5',
+        title: "20,000 Sailors Stranded in Persian Gulf as Rockets Fly Overhead",
+        summary: "He and his shipmates stay up on the deck at night, sometimes watching rockets fly over their heads. What was supposed to be an uneventful voyage has turned into a month-long nightmare.",
+        source: 'NBC News',
+        category: 'Humanitarian',
+        publishedAt: new Date(Date.now() - 10 * 60 * 60 * 1000),
+        color: 'bg-orange-600'
+      },
+      {
+        id: '6',
+        title: "Iran Officially Rejects 15-Point US Peace Proposal",
+        summary: "Iranian state media reported that Iran has officially sent its response rejecting the US proposal and is awaiting the US response. The proposal was presented via Pakistan on March 24.",
+        source: 'Reuters',
+        category: 'Diplomacy',
+        publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+        color: 'bg-blue-600'
+      },
+      {
+        id: '7',
+        title: "Two More South Asian Workers Killed in UAE Missile Attack",
+        summary: "A Pakistani and Indian national were killed by falling debris after a ballistic missile was intercepted, bringing the total South Asian deaths to at least six since the war began.",
+        source: 'CNN',
+        category: 'Humanitarian',
+        publishedAt: new Date(Date.now() - 14 * 60 * 60 * 1000),
+        color: 'bg-orange-600'
+      },
+      {
+        id: '8',
+        title: "US Deploys 11th Marine Expeditionary Unit to Middle East",
+        summary: "Two US officials confirmed the 11th Marine Expeditionary Unit and Boxer Amphibious Ready Group are heading to the Middle East, fueling speculation about potential ground operations.",
+        source: 'BBC',
+        category: 'Military',
+        publishedAt: new Date(Date.now() - 16 * 60 * 60 * 1000),
+        color: 'bg-red-600'
+      },
+      {
+        id: '9',
+        title: "Asian Markets Tumble as War Uncertainty Deepens",
+        summary: "Investors across Asia are deeply worried about when the war will end. Shares fell after US markets had their biggest drop since the start of the conflict.",
+        source: 'Reuters',
+        category: 'Economic',
+        publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
+        color: 'bg-green-600'
+      },
+      {
+        id: '10',
+        title: "Iran Threatens to Target US Troops Staying in Hotels Across Middle East",
+        summary: "Iran is threatening to target US service members who are now forced to stay in hotels and office spaces across the region after base evacuations.",
+        source: 'CNN',
+        category: 'Military',
+        publishedAt: new Date(Date.now() - 20 * 60 * 60 * 1000),
+        color: 'bg-red-600'
+      }
+    ];
+
+    // AI Summaries
+    const aiSummaries = {
+      '1': [
+        "Key Iranian military commander killed in targeted Israeli air strike",
+        "Commander was central figure in Hormuz blockade strategy",
+        "Death escalates tensions; Iran vows retaliation against US interests"
+      ],
+      '2': [
+        "Trump administration extends pause on Iran energy strikes by 10 days",
+        "Decision made as diplomatic talks continue through intermediaries",
+        "Original deadline was March 26; new deadline April 5"
+      ],
+      '3': [
+        "Oil prices surge 5% as Strait of Hormuz enters fourth week of closure",
+        "Brent crude briefly touched $95/barrel, highest since 2022",
+        "Global energy markets face continued supply uncertainty"
+      ],
+      '4': [
+        "Philippines becomes first nation to declare national energy emergency",
+        "Foreign secretary warns of only 40-45 days petroleum supply remaining",
+        "Country heavily dependent on Middle East oil imports"
+      ],
+      '5': [
+        "20,000 sailors remain stranded on ships in Persian Gulf",
+        "Crews report sleeping on deck as rockets fly overhead",
+        "Humanitarian crisis deepening as conflict extends into second month"
+      ],
+      '6': [
+        "Iran officially rejects US 15-point peace proposal",
+        "Response delivered through Pakistani mediators",
+        "Tehran leaves door open for future negotiations"
+      ],
+      '7': [
+        "Two South Asian workers killed by falling debris in UAE",
+        "Casualties from intercepted ballistic missile fragments",
+        "Total South Asian deaths reach at least six since war began"
+      ],
+      '8': [
+        "11th Marine Expeditionary Unit deployed to Middle East",
+        "Boxer Amphibious Ready Group accompanies deployment",
+        "Move fuels speculation about potential ground operations"
+      ],
+      '9': [
+        "Asian markets tumble amid deepening war uncertainty",
+        "Investors concerned about prolonged conflict duration",
+        "US markets experienced biggest drop since war began"
+      ],
+      '10': [
+        "Iran threatens targeting of US troops in hotel accommodations",
+        "Service members forced into civilian spaces after base evacuations",
+        "Threat represents escalation in targeting of US personnel"
+      ]
+    };
+
+    // Watchlist state (with localStorage persistence)
+    let watchlistKeywords = JSON.parse(localStorage.getItem('iran-news-watchlist') || '["Hormuz", "ceasefire"]');
+
+    function saveWatchlist() {
+      localStorage.setItem('iran-news-watchlist', JSON.stringify(watchlistKeywords));
+      updateWatchlistUI();
+    }
+
+    function updateWatchlistUI() {
+      const container = document.getElementById('keywords-list');
+      const sidebarContainer = document.getElementById('sidebar-keywords');
+      const count = document.getElementById('watchlist-count');
+      
+      count.textContent = watchlistKeywords.length;
+      
+      const html = watchlistKeywords.map(keyword => `
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm">
+          ${keyword}
+          <button onclick="removeKeyword('${keyword}')" class="p-0.5 hover:bg-yellow-500/20 rounded transition">
+            <i class="fas fa-times text-xs"></i>
+          </button>
+        </span>
+      `).join('');
+      
+      container.innerHTML = html;
+      
+      // Sidebar preview (max 6)
+      const previewHtml = watchlistKeywords.slice(0, 6).map(keyword => `
+        <span class="px-2 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">${keyword}</span>
+      `).join('');
+      sidebarContainer.innerHTML = previewHtml + (watchlistKeywords.length > 6 ? 
+        `<span class="px-2 py-1 rounded-full bg-slate-700 text-slate-400 text-xs">+${watchlistKeywords.length - 6} more</span>` : '');
+    }
+
+    function removeKeyword(keyword) {
+      watchlistKeywords = watchlistKeywords.filter(k => k !== keyword);
+      saveWatchlist();
+      renderArticles();
+    }
+
+    function addKeyword(keyword) {
+      const trimmed = keyword.trim();
+      if (trimmed && !watchlistKeywords.includes(trimmed)) {
+        watchlistKeywords.push(trimmed);
+        saveWatchlist();
+        renderArticles();
+      }
+    }
+
+    // Event listeners for watchlist
+    document.getElementById('add-keyword-btn').addEventListener('click', () => {
+      document.getElementById('keyword-input-container').classList.remove('hidden');
+      document.getElementById('new-keyword').focus();
+    });
+
+    document.getElementById('cancel-add-btn').addEventListener('click', () => {
+      document.getElementById('keyword-input-container').classList.add('hidden');
+      document.getElementById('new-keyword').value = '';
+    });
+
+    document.getElementById('confirm-add-btn').addEventListener('click', () => {
+      const input = document.getElementById('new-keyword');
+      addKeyword(input.value);
+      input.value = '';
+      document.getElementById('keyword-input-container').classList.add('hidden');
+    });
+
+    document.getElementById('new-keyword').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        addKeyword(e.target.value);
+        e.target.value = '';
+        document.getElementById('keyword-input-container').classList.add('hidden');
+      } else if (e.key === 'Escape') {
+        document.getElementById('keyword-input-container').classList.add('hidden');
+      }
+    });
+
+    function highlightKeywords(text) {
+      if (watchlistKeywords.length === 0) return text;
+      
+      const regex = new RegExp(`(${watchlistKeywords.join('|')})`, 'gi');
+      return text.replace(regex, '<mark class="highlight">$1</mark>');
+    }
+
+    function hasWatchlistMatch(article) {
+      const text = (article.title + ' ' + article.summary).toLowerCase();
+      return watchlistKeywords.some(k => text.includes(k.toLowerCase()));
+    }
+
+    function formatTime(date) {
+      const hours = Math.floor((Date.now() - date) / (1000 * 60 * 60));
+      if (hours < 1) return 'Just now';
+      if (hours === 1) return '1 hour ago';
+      if (hours < 24) return `${hours} hours ago`;
+      return `${Math.floor(hours / 24)} days ago`;
+    }
+
+    function showSummaryModal(articleId) {
+      const modal = document.getElementById('summary-modal');
+      const loading = document.getElementById('summary-loading');
+      const content = document.getElementById('summary-content');
+      const bullets = document.getElementById('summary-bullets');
+      const entities = document.getElementById('summary-entities');
+      
+      modal.classList.remove('hidden');
+      loading.classList.remove('hidden');
+      content.classList.add('hidden');
+      
+      // Simulate AI processing
+      setTimeout(() => {
+        const summary = aiSummaries[articleId] || [
+          "Key developments continue as conflict enters fourth week",
+          "International community calls for de-escalation",
+          "Diplomatic channels remain open through intermediaries"
+        ];
+        
+        bullets.innerHTML = summary.map((point, i) => `
+          <div class="flex gap-3">
+            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-medium">${i + 1}</span>
+            <p class="text-slate-300 text-sm leading-relaxed pt-0.5">${point}</p>
+          </div>
+        `).join('');
+        
+        // Mock entities
+        entities.innerHTML = `
+          <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">👤 Trump</span>
+          <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">🏢 IRGC</span>
+          <span class="px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded">📍 Hormuz</span>
+        `;
+        
+        loading.classList.add('hidden');
+        content.classList.remove('hidden');
+      }, 800);
+    }
+
+    function closeSummaryModal() {
+      document.getElementById('summary-modal').classList.add('hidden');
+    }
+
+    function renderArticles(category = 'All') {
+      const feed = document.getElementById('news-feed');
+      const count = document.getElementById('article-count');
+      
+      const filtered = category === 'All' 
+        ? articles 
+        : articles.filter(a => a.category === category);
+      
+      count.textContent = `${filtered.length} articles`;
+      
+      feed.innerHTML = filtered.map(article => {
+        const hasMatch = hasWatchlistMatch(article);
+        return `
+          <article class="bg-slate-800 rounded-lg p-5 border transition group ${hasMatch ? 'border-yellow-500/50 shadow-lg shadow-yellow-500/10' : 'border-slate-700 hover:border-slate-600'}">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="${article.color} px-2 py-1 rounded text-xs font-semibold text-white">${article.category}</span>
+                  <span class="text-xs text-slate-500">${article.source}</span>
+                  ${hasMatch ? `<span class="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-yellow-500/20 text-yellow-400"><i class="fas fa-bell text-xs"></i> Watchlist Match</span>` : ''}
+                </div>
+                
+                <h3 class="text-lg font-semibold text-slate-100 mb-2 group-hover:text-blue-400 transition">
+                  ${highlightKeywords(article.title)}
+                </h3>
+                
+                <p class="text-slate-400 text-sm leading-relaxed mb-3">
+                  ${highlightKeywords(article.summary)}
+                </p>
+                
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2 text-xs text-slate-500">
+                    <i class="far fa-clock"></i>
+                    <span>${formatTime(article.publishedAt)}</span>
+                  </div>
+                  
+                  <button onclick="showSummaryModal('${article.id}')" class="flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition">
+                    <i class="fas fa-sparkles text-xs"></i>
+                    AI Summarize
+                  </button>
+                </div>
+              </div>
+              
+              <a href="#" class="p-2 text-slate-500 hover:text-blue-400 transition shrink-0" target="_blank">
+                <i class="fas fa-external-link-alt text-sm"></i>
+              </a>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function filterNews(category) {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        const isSelected = btn.dataset.category === category;
+        if (isSelected) {
+          btn.className = 'filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-700 text-white shadow-lg';
+        } else {
+          btn.className = 'filter-btn px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-slate-400 hover:bg-slate-700';
+        }
+      });
+      
+      renderArticles(category);
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('summary-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'summary-modal') closeSummaryModal();
+    });
+
+    // Initialize
+    updateWatchlistUI();
+    renderArticles();
+  </script>
+</body>
+</html>
